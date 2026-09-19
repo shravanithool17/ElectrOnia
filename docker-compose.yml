@@ -1,0 +1,69 @@
+# docker-compose.yml — the whole stack from a clean clone:
+#
+#   docker compose up
+#
+# Mongo runs as a single-member replica set rather than a standalone, because
+# multi-document transactions require one. Atlas is a replica set too, so local
+# behaviour matches production instead of diverging at the one place it matters.
+services:
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first boot, then reports healthy once the
+      # node is primary.
+      test: >
+        mongosh --quiet --eval "
+          try { rs.status().ok }
+          catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }
+        "
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/electronia?replicaSet=rs0&directConnection=true
+      # Development only. Production takes this from the platform's secret store.
+      JWT_SECRET: local-development-secret-at-least-32-characters-long
+      CORS_ORIGINS: http://localhost:5173,http://localhost:5174
+      LOG_LEVEL: debug
+      SEED_ON_BOOT: "true"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore: [node_modules/]
+        - action: rebuild
+          path: ./backend/package.json
+
+volumes:
+  mongo-data:
+  redis-data:

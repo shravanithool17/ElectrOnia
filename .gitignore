@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment — never commit these. Rotate any secret that reaches git.
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Build output
+dist/
+build/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Test + coverage
+coverage/
+.nyc_output/
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp

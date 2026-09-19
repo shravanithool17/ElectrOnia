@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from '../lib/api';
 const VendorOtpVerify = () => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
@@ -13,7 +14,7 @@ const navigate=useNavigate();
     }
 
     try {
-      const res = await fetch("http://localhost:3000/verify-otp", {
+      const res = await fetch(`${API_BASE}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: signupData.email, otp }),
@@ -23,7 +24,7 @@ const navigate=useNavigate();
       if (!res.ok) throw new Error(result.message);
 
       // Call actual vendor signup
-      const signupRes = await fetch("http://localhost:3000/signupvendor", {
+      const signupRes = await fetch(`${API_BASE}/signupvendor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(signupData),

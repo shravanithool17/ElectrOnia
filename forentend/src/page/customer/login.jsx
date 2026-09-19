@@ -1,14 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { api } from '../../lib/api';
+import { useCart } from '../../context/CartContext';
+import { setToken } from '../../lib/auth';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { mergeGuestCart } = useCart();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -38,22 +44,23 @@ const Login = () => {
     setServerError("");
 
     try {
-      const res = await fetch("http://localhost:3000/logincustomer", {
+      // api() carries credentials, so the guest cart cookie travels with this
+      // request and unwraps the API's { error: { message } } shape for us.
+      const data = await api('/logincustomer', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
-      const data = await res.json();
+      // Through setToken, not localStorage directly, so the cart hears about it.
+      setToken(data.token, 'customer');
 
-      if (!res.ok) {
-        throw new Error(data.message || "Invalid email or password");
-      }
+      // Fold anything added before signing in into this account's cart. The
+      // guest token is in an httpOnly cookie, so the server reads it there.
+      // A failure here is deliberately not fatal — it must never block login.
+      await mergeGuestCart();
 
-      localStorage.setItem("token", data.token);
-
-      // Navigate to dashboard or home
-      navigate("/");
+      // Back to wherever the sign-in wall stopped them (usually checkout).
+      navigate(location.state?.from ?? "/", { replace: true });
     } catch (err) {
       setServerError(err.message);
     } finally {
@@ -62,8 +69,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-indigo-100 flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 transform hover:scale-105 transition-all duration-300">
+    <div className="min-h-screen bg-slate-50 rounded-[28px] flex items-center justify-center px-4 py-12">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             Welcome Back
@@ -89,16 +96,25 @@ const Login = () => {
 
           <div>
             <label className="block text-gray-700 text-sm font-semibold mb-2 ml-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-4 rounded-2xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm
-                         text-gray-800 placeholder-gray-500 text-lg font-medium
-                         focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50
-                         hover:border-gray-300 hover:shadow-lg transition-all duration-300"
-              placeholder="Enter your password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-4 pr-16 rounded-2xl border-2 border-gray-200 bg-white/70 backdrop-blur-sm
+                           text-gray-800 placeholder-gray-500 text-lg font-medium
+                           focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50
+                           hover:border-gray-300 hover:shadow-lg transition-all duration-300"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600 focus:outline-none text-xs font-semibold uppercase tracking-wider py-1 px-1.5 cursor-pointer"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             {errors.password && <p className="text-red-500 text-sm mt-2 ml-2 font-medium">{errors.password}</p>}
           </div>
 
@@ -112,9 +128,13 @@ const Login = () => {
               />
               <span className="ml-2 text-gray-600">Remember me</span>
             </label>
-            <span className="text-blue-600 hover:text-blue-800 cursor-pointer font-medium transition duration-200">
+            <Link
+              to="/forgot-password"
+              state={{ email: email.trim() }}
+              className="text-blue-600 hover:text-blue-800 font-medium transition duration-200"
+            >
               Forgot password?
-            </span>
+            </Link>
           </div>
 
           <button

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from '../lib/api';
 
 const CustomerProfile = () => {
   const [customer, setCustomer] = useState(null);
@@ -16,7 +17,7 @@ const CustomerProfile = () => {
 
     const fetchCustomer = async () => {
       try {
-        const res = await fetch("http://localhost:3000/profile", {
+        const res = await fetch(`${API_BASE}/profile`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,

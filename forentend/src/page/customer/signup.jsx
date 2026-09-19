@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from '../../lib/api';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -48,18 +49,22 @@ const Signup = () => {
     setIsSubmitting(true);
 
     try {
-      const otpRes = await fetch("http://localhost:3000/send-otp", {
+      // api() unwraps the API's { error: { message } } shape. Raw fetch read
+      // otpData.message, which is never there, so a real reason ("Email
+      // delivery is not configured on this server") arrived as the generic
+      // "Failed to send OTP".
+      const otpData = await api('/send-otp', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
       });
 
-      const otpData = await otpRes.json();
-
-      if (!otpRes.ok) throw new Error(otpData.message || "Failed to send OTP");
-
       localStorage.setItem("signupData", JSON.stringify(formData));
-      navigate("/verify-otp");
+      // The server says whether it actually emailed the code or only printed
+      // it to the API console. Passing that through means the next screen can
+      // tell the truth instead of saying "check your inbox" either way.
+      navigate("/verify-otp", {
+        state: { emailed: otpData?.emailed !== false, notice: otpData?.message, debug: otpData?.debug },
+      });
     } catch (err) {
       setErrors({ submit: err.message });
     } finally {
@@ -68,7 +73,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-indigo-100 to-cyan-100">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50 rounded-[28px]">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 space-y-6"

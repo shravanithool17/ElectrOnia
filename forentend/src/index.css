@@ -1,1 +1,274 @@
 @import "tailwindcss";
+
+/* ============================================================================
+   ElectrOnia design tokens — "Showroom"
+   ============================================================================
+
+   A bright, premium product-first look: white and soft-grey surfaces, near-
+   black type, one confident blue for everything you can press, and a warm
+   orange used only for "New" and price cuts. Large, calm type; generous
+   space; products shown big on grey tiles; motion that is smooth and slow
+   rather than bouncy.
+
+   Tailwind's `slate` and `blue` ramps are redefined here rather than adding
+   new names, so every screen already written with text-slate-900 / bg-white /
+   bg-blue-600 lands in this system without its markup changing.
+   ============================================================================ */
+
+@theme {
+  /* One family, many weights — Inter is designed for UI at every size. */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Neutrals — warm-cool greys with a near-black ink. */
+  --color-slate-50:  #F5F5F7;
+  --color-slate-100: #EDEDF0;
+  --color-slate-200: #E3E3E8;
+  --color-slate-300: #D2D2D7;
+  --color-slate-400: #A1A1A6;
+  --color-slate-500: #86868B;
+  --color-slate-600: #6E6E73;
+  --color-slate-700: #424245;
+  --color-slate-800: #2C2C2E;
+  --color-slate-900: #1D1D1F;
+  --color-slate-950: #0B0B0C;
+
+  --color-gray-50:  var(--color-slate-50);
+  --color-gray-100: var(--color-slate-100);
+  --color-gray-200: var(--color-slate-200);
+  --color-gray-300: var(--color-slate-300);
+  --color-gray-400: var(--color-slate-400);
+  --color-gray-500: var(--color-slate-500);
+  --color-gray-600: var(--color-slate-600);
+  --color-gray-700: var(--color-slate-700);
+  --color-gray-800: var(--color-slate-800);
+  --color-gray-900: var(--color-slate-900);
+
+  /* Accent — a clear, saturated blue. */
+  --color-blue-50:  #EEF5FF;
+  --color-blue-100: #DCEBFF;
+  --color-blue-200: #B9D6FF;
+  --color-blue-300: #8BBBFB;
+  --color-blue-400: #4E97F0;
+  --color-blue-500: #1F7FEA;
+  --color-blue-600: #0071E3;
+  --color-blue-700: #0062C4;
+  --color-blue-800: #0050A0;
+  --color-blue-900: #003D7A;
+  --color-blue-950: #002447;
+
+  --color-indigo-50:  var(--color-blue-50);
+  --color-indigo-100: var(--color-blue-100);
+  --color-indigo-200: var(--color-blue-200);
+  --color-indigo-500: var(--color-blue-500);
+  --color-indigo-600: var(--color-blue-600);
+  --color-indigo-700: var(--color-blue-700);
+  --color-indigo-950: var(--color-blue-950);
+  --color-purple-50:  var(--color-blue-50);
+  --color-purple-500: var(--color-blue-500);
+  --color-purple-600: var(--color-blue-600);
+  --color-purple-700: var(--color-blue-700);
+
+  /* Signal — warm orange, only for "New", discounts and low stock. */
+  --color-signal-50:  #FFF4EC;
+  --color-signal-100: #FFE6D4;
+  --color-signal-200: #FFCBA6;
+  --color-signal-400: #F7852F;
+  --color-signal-500: #E8650A;
+  --color-signal-600: #BF4800;
+  --color-signal-700: #9A3A00;
+
+  /* Soft, large radii. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-3xl: 28px;
+
+  --ease-out-soft: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
+
+:root {
+  color-scheme: light;
+  --canvas: #FFFFFF;
+}
+
+* { border-color: var(--color-slate-200); }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--color-slate-900);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "ss03";
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+h3, h4 { letter-spacing: -0.018em; }
+
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+:focus-visible {
+  outline: 2px solid var(--color-blue-600);
+  outline-offset: 2px;
+}
+
+::selection { background: var(--color-blue-100); color: var(--color-slate-900); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-slate-300) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--color-slate-300); border-radius: 99px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* The small eyebrow label used for section kickers, table headers and stat
+   captions. (Kept under its old name so existing screens pick it up.) */
+@utility label-mono {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Hide scrollbars on horizontal shelves while keeping them scrollable. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* ============================================================================
+   Motion
+   ============================================================================ */
+
+/* Reveal: fades and rises once when it scrolls into view. */
+@keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+.reveal { opacity: 0; }
+.reveal.is-visible { animation: rise .9s var(--ease-out-soft) forwards; }
+
+/* Hero product: scales up and sharpens as you scroll into it (driven by the
+   --p custom property, 0 → 1, set from JS). */
+.scroll-scale {
+  transform: scale(calc(.82 + .18 * var(--p, 0))) translateY(calc(40px * (1 - var(--p, 0))));
+  opacity: calc(.6 + .4 * var(--p, 0));
+  transition: transform .1s linear, opacity .1s linear;
+  will-change: transform;
+}
+
+/* Headline words slide up in sequence on load. */
+@keyframes word-up { from { opacity: 0; transform: translateY(0.45em); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.word-up > span { display: inline-block; opacity: 0; animation: word-up .9s var(--ease-out-soft) forwards; }
+.word-up > span.text-gradient { animation: word-up .9s var(--ease-out-soft) forwards, sheen 8s linear infinite; padding-bottom: .08em; }
+
+/* Gentle float for hero products. */
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.float { animation: float 6s ease-in-out infinite; }
+
+/* "Added" confirmation that pops on a product card. */
+@keyframes added-pop {
+  0%   { opacity: 0; transform: translate(-50%, 8px) scale(.9); }
+  15%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -6px) scale(.98); }
+}
+.added-pop {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 20;
+  animation: added-pop 1.6s var(--ease-out-soft) forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal, .word-up > span { opacity: 1; }
+  .scroll-scale { transform: none; opacity: 1; }
+}
+
+/* Full-bleed: lets a section inside the centred <main> run edge to edge. */
+@utility bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+body { overflow-x: clip; }
+
+/* Products standing on the page, not pasted onto it. */
+.product-shadow { filter: drop-shadow(0 28px 30px rgba(0, 0, 0, .16)) drop-shadow(0 6px 8px rgba(0, 0, 0, .06)); }
+
+/* ============================================================================
+   Colour
+   ============================================================================ */
+
+/* The brand gradient — blue → violet → pink → orange. Used sparingly: a
+   headline, the primary hero action, the announcement strip. */
+:root {
+  --brand-gradient: linear-gradient(100deg, #0071E3 0%, #7C3AED 35%, #EC4899 65%, #F97316 100%);
+}
+
+/* Gradient text that slowly drifts, like light moving across metal. */
+@keyframes sheen { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.text-gradient {
+  background: linear-gradient(100deg, #0071E3, #7C3AED, #EC4899, #F97316, #7C3AED, #0071E3);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 8s linear infinite;
+}
+
+.bg-brand { background: var(--brand-gradient); }
+
+/* Soft colour fields behind the hero — three blurred blobs drifting. */
+@keyframes drift-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px,-30px) scale(1.1); } }
+@keyframes drift-b { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-50px,40px) scale(1.15); } }
+@keyframes drift-c { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(30px,30px) scale(.95); } }
+.blob { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .45; pointer-events: none; }
+.blob-a { animation: drift-a 16s ease-in-out infinite; }
+.blob-b { animation: drift-b 19s ease-in-out infinite; }
+.blob-c { animation: drift-c 22s ease-in-out infinite; }
+
+/* Announcement strip: a slow, seamless marquee. */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { display: flex; width: max-content; animation: marquee 38s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+
+/* Coloured glow behind a product on hover (colour from --glow). */
+.glow-behind { position: relative; }
+.glow-behind::before {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 9999px;
+  background: var(--glow, rgba(0,113,227,.25));
+  filter: blur(40px);
+  opacity: 0;
+  transform: scale(.8);
+  transition: opacity .6s var(--ease-out-soft), transform .8s var(--ease-out-soft);
+  pointer-events: none;
+}
+.group:hover .glow-behind::before { opacity: 1; transform: scale(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient, .blob, .marquee { animation: none; }
+}

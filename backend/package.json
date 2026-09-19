@@ -1,22 +1,49 @@
 {
-  "name": "backend",
+  "name": "electronia-backend",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "seed": "node lib/seed.js",
+    "migrate:paise": "node scripts/migrate-money-to-paise.js",
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:watch": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --watch --runInBand",
+    "lint": "eslint .",
+    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit",
+    "test:integration": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --selectProjects integration --runInBand",
+    "mail:test": "node scripts/send-test-email.js",
+    "pay:check": "node scripts/check-razorpay.js",
+    "orders:backfill": "node scripts/backfill-order-vendors.js"
   },
-  "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "ElectrOnia multi-vendor marketplace API",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.5",
     "nodemailer": "^7.0.5",
-    "nodemon": "^3.1.10"
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.2",
+    "nodemon": "^3.1.10",
+    "pino-pretty": "^13.0.0",
+    "supertest": "^7.0.0"
   }
 }

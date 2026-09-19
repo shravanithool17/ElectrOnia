@@ -1,0 +1,16 @@
+{
+  "//": [
+    "nodemon watches js,mjs,cjs,json by default — NOT .env. So editing .env",
+    "left the running process with the old environment and no sign that",
+    "anything was stale: SMTP credentials were added, nothing restarted, and",
+    "the API went on printing verification codes to the console while telling",
+    "the browser the email had been sent.",
+    "",
+    "Adding env to the extension list means a credential change takes effect",
+    "the moment the file is saved."
+  ],
+  "watch": ["index.js", "server.js", "config", "lib", "middleware", "model", "modules", "routes", ".env"],
+  "ext": "js,mjs,cjs,json,env",
+  "ignore": ["tests/**", "scripts/**", "node_modules/**"],
+  "delay": "300"
+}
