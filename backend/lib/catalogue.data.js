@@ -26,20 +26,15 @@
 // localhost and in production without a rebuild.
 
 import { artPath, SHAPES, COLORWAYS } from './productArt.js';
+import { REAL_IMAGES_BY_SHAPE, REAL_IMAGES_BY_TITLE } from './realImages.data.js';
 
 /**
- * Real photography, when you have it. Keyed by product title; the value is an
- * array of absolute URLs that replaces the generated art entirely.
- *
- * @example
- * const IMAGE_OVERRIDES = {
- *   'iPhone 15 Pro Max': [
- *     'https://cdn.electronia.in/products/iphone-15-pro-max/1.webp',
- *     'https://cdn.electronia.in/products/iphone-15-pro-max/2.webp',
- *   ],
- * };
+ * Real photography overrides. Keyed by product title; falls back to real
+ * high-res photography by shape, and finally generated art.
  */
-export const IMAGE_OVERRIDES = {};
+export const IMAGE_OVERRIDES = {
+  ...REAL_IMAGES_BY_TITLE,
+};
 
 /** front / angle / detail of one shape in one colourway. */
 const views = (shape, colorway) => [
@@ -481,7 +476,10 @@ export const CATALOGUE = RAW.map((item) => ({
   // rating is identical makes the "top rated" sort meaningless.
   rating: Number((3.9 + ((item.title.length * 7) % 11) / 10).toFixed(1)),
   numReviews: 8 + ((item.title.length * 13) % 240),
-  images: IMAGE_OVERRIDES[item.title] ?? views(item.shape, item.colorway),
+  images:
+    IMAGE_OVERRIDES[item.title] ??
+    REAL_IMAGES_BY_SHAPE[item.shape] ??
+    views(item.shape, item.colorway),
   specifications: item.specs,
   featured: item.featured,
 }));
