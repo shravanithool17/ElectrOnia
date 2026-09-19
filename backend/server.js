@@ -35,7 +35,13 @@ export function createApp() {
       origin(origin, callback) {
         // No Origin header: curl, same-origin, server-to-server.
         if (!origin) return callback(null, true);
-        if (env.corsOrigins.includes(origin)) return callback(null, true);
+        if (
+          env.corsOrigins.includes(origin) ||
+          env.corsOrigins.includes('*') ||
+          origin.endsWith('.vercel.app')
+        ) {
+          return callback(null, true);
+        }
         return callback(new Error(`Origin ${origin} is not allowed`));
       },
       credentials: true,
