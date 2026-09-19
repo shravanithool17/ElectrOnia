@@ -62,7 +62,7 @@ jobs:
   build-and-push:
     name: Build & Push Docker Images
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.DOCKERHUB_USERNAME != ''
     runs-on: ubuntu-latest
 
     steps:
@@ -108,7 +108,7 @@ jobs:
   deploy:
     name: Deploy to Production
     needs: build-and-push
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.SERVER_HOST != ''
     runs-on: ubuntu-latest
 
     steps:
