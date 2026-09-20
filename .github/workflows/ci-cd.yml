@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # In-memory MongoDB replica set or standalone for testing
       mongo:
         image: mongo:7
         ports:
@@ -57,12 +56,38 @@ jobs:
         run: npm run build
 
   # =========================================================================
-  # 2. Build & Push Docker Images
+  # Check for optional Docker Hub and VPS secrets (avoids secrets in job 'if')
+  # =========================================================================
+  check-secrets:
+    name: Check Deployment Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      has_dockerhub: ${{ steps.check.outputs.has_dockerhub }}
+      has_vps: ${{ steps.check.outputs.has_vps }}
+    steps:
+      - id: check
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          if [ -n "$DOCKERHUB_USERNAME" ]; then
+            echo "has_dockerhub=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_dockerhub=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$SERVER_HOST" ]; then
+            echo "has_vps=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_vps=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # =========================================================================
+  # 2. Build & Push Docker Images (optional, runs if Docker Hub secrets set)
   # =========================================================================
   build-and-push:
     name: Build & Push Docker Images
-    needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.DOCKERHUB_USERNAME != ''
+    needs: [test, check-secrets]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && needs.check-secrets.outputs.has_dockerhub == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -103,12 +128,12 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/electronia-frontend:${{ github.sha }}
 
   # =========================================================================
-  # 3. Continuous Deployment (CD): Deploy to Server
+  # 3. Continuous Deployment (CD): Deploy to Server (optional, if VPS host set)
   # =========================================================================
   deploy:
     name: Deploy to Production
-    needs: build-and-push
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.SERVER_HOST != ''
+    needs: [build-and-push, check-secrets]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && needs.check-secrets.outputs.has_vps == 'true'
     runs-on: ubuntu-latest
 
     steps:
