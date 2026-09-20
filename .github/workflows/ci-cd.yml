@@ -68,14 +68,16 @@ jobs:
       - id: check
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          if [ -n "$DOCKERHUB_USERNAME" ]; then
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
             echo "has_dockerhub=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_dockerhub=false" >> "$GITHUB_OUTPUT"
           fi
-          if [ -n "$SERVER_HOST" ]; then
+          if [ -n "$SERVER_HOST" ] && [ -n "$SERVER_SSH_KEY" ]; then
             echo "has_vps=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_vps=false" >> "$GITHUB_OUTPUT"
@@ -98,6 +100,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
+        id: docker_login
+        continue-on-error: true
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -105,6 +109,7 @@ jobs:
 
       # Build & Push Backend
       - name: Build and Push Backend Image
+        if: steps.docker_login.outcome == 'success'
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -116,6 +121,7 @@ jobs:
 
       # Build & Push Frontend
       - name: Build and Push Frontend Image
+        if: steps.docker_login.outcome == 'success'
         uses: docker/build-push-action@v5
         with:
           context: ./forentend
