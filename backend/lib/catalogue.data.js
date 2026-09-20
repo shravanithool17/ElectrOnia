@@ -27,6 +27,7 @@
 
 import { artPath, SHAPES, COLORWAYS } from './productArt.js';
 import { REAL_IMAGES_BY_SHAPE, REAL_IMAGES_BY_TITLE } from './realImages.data.js';
+import { assignPhotos } from './productPhotos.js';
 
 /**
  * Real photography overrides. Keyed by product title; falls back to real
@@ -464,6 +465,35 @@ for (const item of RAW) {
 }
 
 /** Rupees → paise, and shape each row into a Product document. */
+// Per-product real photography. Products that share a pool get DIFFERENT lead
+// shots, so a page of laptops does not repeat one photo. Deterministic, so
+// reseeding never reshuffles. PRODUCT_IMAGES=art forces the generated SVGs
+// (offline demos, since photos load from a CDN).
+const PHOTOS =
+  (process.env.PRODUCT_IMAGES || '').toLowerCase() === 'art' ? new Map() : assignPhotos(RAW);
+
+/**
+ * Exactly three images per product, best source first: a curated per-title
+ * override, then the per-product pool photos, then a per-shape photo set, then
+ * generated art — de-duplicated, and padded so the gallery is never short.
+ */
+function pickImages(item) {
+  const art = views(item.shape, item.colorway);
+  const merged = [
+    ...(IMAGE_OVERRIDES[item.title] ?? []),
+    ...(PHOTOS.get(item.title) ?? []),
+    ...(REAL_IMAGES_BY_SHAPE[item.shape] ?? []),
+    ...art,
+  ];
+  const out = [];
+  for (const url of merged) {
+    if (!out.includes(url)) out.push(url);
+    if (out.length === 3) break;
+  }
+  while (out.length < 3) out.push(out[out.length - 1] ?? art[0]);
+  return out;
+}
+
 export const CATALOGUE = RAW.map((item) => ({
   title: item.title,
   description: item.description,
@@ -476,10 +506,7 @@ export const CATALOGUE = RAW.map((item) => ({
   // rating is identical makes the "top rated" sort meaningless.
   rating: Number((3.9 + ((item.title.length * 7) % 11) / 10).toFixed(1)),
   numReviews: 8 + ((item.title.length * 13) % 240),
-  images:
-    IMAGE_OVERRIDES[item.title] ??
-    REAL_IMAGES_BY_SHAPE[item.shape] ??
-    views(item.shape, item.colorway),
+  images: pickImages(item),
   specifications: item.specs,
   featured: item.featured,
 }));

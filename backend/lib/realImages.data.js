@@ -22,7 +22,7 @@ export const REAL_IMAGES_BY_SHAPE = {
 
   // Smartphones
   'phone': [
-    'https://images.unsplash.com/photo-1511707171634-5f897ff02560?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1598965402089-897ce52e8355?auto=format&fit=crop&w=1000&q=80',
     'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=1000&q=80',
     'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?auto=format&fit=crop&w=1000&q=80',
   ],
@@ -79,14 +79,14 @@ export const REAL_IMAGES_BY_SHAPE = {
   ],
   'handheld': [
     'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1612287233207-6b45f448c4a1?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1656662962127-d8344d924d74?auto=format&fit=crop&w=1000&q=80',
   ],
   'controller': [
     'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1592840496073-e70bb4c9826a?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1612801799890-4ba4760b6590?auto=format&fit=crop&w=1000&q=80',
   ],
   'vr-headset': [
-    'https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1622979135225-d2ba269bc1ac?auto=format&fit=crop&w=1000&q=80',
   ],
 
   // Peripherals & Accessories
@@ -107,13 +107,13 @@ export const REAL_IMAGES_BY_SHAPE = {
     'https://images.unsplash.com/photo-1547119957-637f8679db1e?auto=format&fit=crop&w=1000&q=80',
   ],
   'powerbank': [
-    'https://images.unsplash.com/photo-1609592424079-05a9634d0b2e?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1706275399494-fb26bbc5da63?auto=format&fit=crop&w=1000&q=80',
   ],
   'charger': [
     'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=1000&q=80',
   ],
   'charge-pad': [
-    'https://images.unsplash.com/photo-1622445262464-84b1bbe57305?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1681382659831-2f3b16748a64?auto=format&fit=crop&w=1000&q=80',
   ],
   'drive': [
     'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=1000&q=80',

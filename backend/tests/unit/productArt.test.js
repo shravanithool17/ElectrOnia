@@ -118,15 +118,23 @@ describe('catalogue image data', () => {
     for (const product of CATALOGUE) {
       const permitted = allowed[product.category];
       if (!permitted) continue; // Gaming and Accessories are deliberately mixed
+      // Real photos carry no shape in their URL; the fallback art still does,
+      // and is what this guard (no headphone photo on a power bank) protects.
+      if (/^https?:\/\//.test(product.images[0])) continue;
       const shape = product.images[0].split('/')[3];
       expect(permitted).toContain(shape);
     }
   });
 
-  it('builds paths through artPath rather than by hand', () => {
-    expect(CATALOGUE[0].images[0]).toBe(
-      artPath(CATALOGUE[0].images[0].split('/')[3], CATALOGUE[0].images[0].split('/')[4], 'front')
-    );
+  it('builds generated-art paths through artPath rather than by hand', () => {
+    // Real-photo products carry CDN URLs; only the generated-art fallback is
+    // built by artPath. Assert the helper's shape directly.
+    expect(artPath('laptop', 'graphite', 'front')).toBe('/media/products/laptop/graphite/front.svg');
+    const arty = CATALOGUE.find((p) => p.images[0].startsWith('/media/'));
+    if (arty) {
+      const [, , , shape, colorway] = arty.images[0].split('/');
+      expect(arty.images[0]).toBe(artPath(shape, colorway, 'front'));
+    }
   });
 
   it('lets an override replace the generated art', () => {
@@ -185,14 +193,24 @@ describe('GET /media/products', () => {
     expect(res.body.total).toBe(res.body.shapes.length * res.body.colorways.length * 3);
   });
 
-  it('serves every path the catalogue references', async () => {
-    const paths = [...new Set(CATALOGUE.flatMap((p) => p.images))];
+  it('serves every generated-art path the catalogue references', async () => {
+    // Real product photos are served by the image CDN, not this app; only the
+    // generated-art fallbacks (/media/...) are ours to serve.
+    const paths = [...new Set(CATALOGUE.flatMap((p) => p.images))].filter((p) => p.startsWith('/media/'));
 
     const statuses = await Promise.all(
       paths.map((path) => request(app).get(path).then((r) => [path, r.status]))
     );
 
     expect(statuses.filter(([, status]) => status !== 200)).toEqual([]);
+  });
+
+  it('every product image is either a served art path or a CDN photo URL', () => {
+    for (const product of CATALOGUE) {
+      for (const url of product.images) {
+        expect(url).toMatch(/^(\/media\/products\/|https:\/\/images\.unsplash\.com\/)/);
+      }
+    }
   });
 });
 
