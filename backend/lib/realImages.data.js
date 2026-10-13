@@ -86,7 +86,7 @@ export const REAL_IMAGES_BY_SHAPE = {
     'https://images.unsplash.com/photo-1612801799890-4ba4760b6590?auto=format&fit=crop&w=1000&q=80',
   ],
   'vr-headset': [
-    'https://images.unsplash.com/photo-1622979135225-d2ba269bc1ac?auto=format&fit=crop&w=1000&q=80',
+    'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&w=1000&q=80',
   ],
 
   // Peripherals & Accessories

@@ -17,15 +17,15 @@ defensible under detailed questioning. Everything after that is additive.
 Adding features to a 600-line `index.js` makes the eventual refactor more
 expensive every week. Pay this now, while the codebase is small.
 
-- [ ] Split into `modules/<domain>/{routes,controller,service,repo,schema}`
-- [ ] `server.js` exports the app; `index.js` only calls `listen()`
-- [ ] zod validation on every route; typed error classes; one error handler
-- [ ] pino structured logging with request-id correlation
-- [ ] `/api/v1` prefix, consistent list envelope, cursor pagination
-- [ ] Money → integer paise everywhere, with a `lib/money.js` helper; migrate seed data
-- [ ] helmet, express-mongo-sanitize, compression
-- [ ] Docker Compose: api + worker + mongo (replica set of 1) + redis
-- [ ] Jest + Supertest wired up, with the first five tests from `testing.md`
+- [x] Split into `modules/<domain>/{routes,controller,service,repo,schema}`
+- [x] `server.js` exports the app; `index.js` only calls `listen()`
+- [x] zod validation on every route; typed error classes; one error handler
+- [x] pino structured logging with request-id correlation
+- [x] `/api/v1` prefix, consistent list envelope, cursor pagination
+- [x] Money → integer paise everywhere, with a `lib/money.js` helper; migrate seed data
+- [x] helmet, express-mongo-sanitize, compression
+- [x] Docker Compose: api + worker + mongo (replica set of 1) + redis
+- [x] Jest + Supertest wired up, with 340+ tests across unit and integration suites
 
 **Done when:** every route goes controller → service → repo, `npm test` passes,
 and `docker compose up` gives a working stack from a clean clone.
@@ -36,13 +36,13 @@ and `docker compose up` gives a working stack from a clean clone.
 
 The phase that makes ElectrOnia a real project rather than a CRUD demo.
 
-- [ ] **Order → Fulfillment split** with the state-machine table (ADR 0002)
-- [ ] **Server-side cart** with price-change notices and stock validation
-- [ ] **Product variants** + `inventory` keyed by variant × warehouse, with
+- [x] **Order → Fulfillment split** with the state-machine table (ADR 0002)
+- [x] **Server-side cart** with price-change notices and stock validation
+- [x] **Product variants** + `inventory` keyed by variant × warehouse, with
       `onHand`/`reserved` and the append-only stock ledger
-- [ ] **Transactional checkout**: reserve, create order, create fulfillments,
+- [x] **Transactional checkout**: reserve, create order, create fulfillments,
       write the outbox event — one atomic unit
-- [ ] **Razorpay**: signature verification, idempotent webhooks, refunds (ADR 0005)
+- [x] **Razorpay**: signature verification, idempotent webhooks, refunds (ADR 0005)
 - [ ] Redis for caching, OTP storage and BullMQ; email moves to a worker
 - [ ] Refresh-token rotation with reuse detection; tokens out of `localStorage`
 

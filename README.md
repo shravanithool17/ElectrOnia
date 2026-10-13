@@ -4,8 +4,9 @@ A multi-vendor electronics marketplace. Customers buy, vendors list and fulfil,
 admins moderate — one Express API, MongoDB, and a React storefront.
 
 > **Status:** active development. The commerce core (catalogue, cart, orders,
-> vendor portal) works end to end. Payments, returns and the admin console are
-> on the roadmap — see [`docs/roadmap.md`](docs/roadmap.md).
+> vendor portal, and Razorpay payments with idempotent HMAC-verified webhooks)
+> works end to end, backed by 340+ automated Jest tests. Post-order returns and the
+> dedicated admin moderation console are on the roadmap — see [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -15,6 +16,7 @@ admins moderate — one Express API, MongoDB, and a React storefront.
 - [Running it locally](#running-it-locally)
 - [Architecture at a glance](#architecture-at-a-glance)
 - [API](#api)
+- [Testing](#testing)
 - [Security](#security)
 - [Documentation](#documentation)
 - [Deliberately out of scope for v1](#deliberately-out-of-scope-for-v1)
@@ -25,10 +27,12 @@ admins moderate — one Express API, MongoDB, and a React storefront.
 
 | Layer | Choice | Why |
 |---|---|---|
-| API | Node.js 20, Express 5 | Async error handling built in; familiar middleware model |
+| API | Node.js 20, Express 5 | Async error handling built in; modular monolith architecture |
 | Data | MongoDB 8 via Mongoose, Atlas | Flexible product/variant shapes; replica set gives transactions |
 | Auth | JWT access tokens + bcrypt | Stateless verification; role claims drive RBAC |
+| Payments | Razorpay SDK & Webhooks | Idempotent HMAC-SHA256 verified webhooks; raw body retention |
 | Storefront | React 19, Vite 7, React Router 7, Tailwind 4 | Fast dev loop, no SSR requirement yet |
+| Testing | Jest 29, Supertest, mongodb-memory-server | 340+ unit & integration tests; in-memory replica set for transactions |
 | Email | Nodemailer | OTP delivery; falls back to console in development |
 
 ## Running it locally
@@ -49,6 +53,12 @@ cd forentend
 echo "VITE_API_URL=http://localhost:3000" > .env
 npm install
 npm run dev                     # http://localhost:5173
+
+# 3. Automated Tests
+cd backend
+npm test                        # runs all 340+ Jest tests in-band
+npm run test:unit               # runs unit test suite only
+npm run test:integration        # runs integration test suite with in-memory replica set
 ```
 
 The catalogue seeds itself on first boot if the products collection is empty.
@@ -70,7 +80,8 @@ into a service later without a rewrite. See
 React storefront ─┐
 Vendor portal   ─┼─→  Express API  ─→  MongoDB Atlas
 Admin console   ─┘         │
-                           └─→  Nodemailer (OTP)
+                           ├─→  Nodemailer (OTP)
+                           └─→  Razorpay (Checkout & Webhooks)
 ```
 
 Four decisions shape the data model more than anything else:
@@ -86,20 +97,43 @@ Full target design, schemas and diagrams: [`docs/architecture.md`](docs/architec
 
 ## API
 
-19 endpoints today. Conventions, the full endpoint map and the error shape are
-in [`docs/api.md`](docs/api.md).
+50+ endpoints across 10 domain modules under `/api/v1` (with backward-compatible legacy routes). Conventions, the full endpoint map and the error shape are in [`docs/api.md`](docs/api.md).
+
+| Module | Base Path | Key Capabilities |
+|---|---|---|
+| **Auth & Identity** | `/api/v1/auth` | Customer & vendor registration/login, bcrypt-hashed single-use OTPs, password reset, session info |
+| **Catalog** | `/api/v1/products` | Paginated product browsing, search, dynamic facets, vendor-scoped CRUD, related items |
+| **Cart** | `/api/v1/cart` | Guest cart cookies, authenticated sync, price-change notices, coupon validation, guest cart merge |
+| **Addresses** | `/api/v1/addresses` | Customer shipping address book with default selection |
+| **Checkout** | `/api/v1/checkout` | Real-time quote preview, server-side pricing, atomic stock reservation & rollback |
+| **Orders** | `/api/v1/orders` | Customer order history, vendor-scoped orders with multi-vendor line filtering |
+| **Fulfillment** | `/api/v1/orders/:id/*` | Vendor package lifecycle (`ship`, `out-for-delivery`, `deliver`, `cancel-package`, customer cancellation) |
+| **Payments** | `/api/v1/payments` | Razorpay order intent creation, client signature confirmation, idempotent HMAC-verified webhook |
+| **Vendor** | `/api/v1/vendor` | Vendor analytics and metrics dashboard |
+| **Operations & Media** | `/health`, `/ready`, `/media/products` | Liveness/readiness probes, zero-CDN procedural SVG product media generation |
+
+Key endpoint samples:
 
 ```
-GET    /api/products              # filter, sort, paginate → { items, page, total, totalPages }
-GET    /api/products/:id
-GET    /api/products/mine         # vendor's own listings
-POST   /api/products              # vendor
-PATCH  /api/products/:id          # vendor, owner only
-DELETE /api/products/:id          # vendor, owner only
-POST   /api/orders                # customer — total computed server-side
-GET    /api/orders/my-orders      # customer
-GET    /api/orders/vendor-orders  # vendor — scoped to their own lines
-PATCH  /api/orders/:id/status     # vendor or admin
+POST   /api/v1/checkout/place-order          # Customer — atomic stock reservation & order placement
+POST   /api/v1/payments/razorpay/intent      # Customer — initiates Razorpay payment order
+POST   /api/v1/payments/razorpay/confirm     # Customer — verifies checkout signature
+POST   /api/v1/payments/razorpay/webhook     # Public — HMAC-SHA256 verified, raw-body, idempotent event ingestion
+POST   /api/v1/orders/:id/ship               # Vendor/Admin — marks a vendor's fulfillment package shipped
+POST   /api/v1/cart/merge                    # Customer — merges guest cart on login
+GET    /api/v1/products/facets               # Public — dynamic aggregate facets
+```
+
+## Testing
+
+ElectrOnia includes a comprehensive test suite of **341 Jest tests** across **17 test suites** (unit and integration), verifying core commerce invariants:
+
+- **Unit tests (Jest):** Money maths (integer paise calculations), coupon rules, server-side pricing calculations, OTP delivery/expiry, token authentication, and SVG art generation.
+- **Integration tests (Jest + Supertest + mongodb-memory-server):** Tests run against an in-memory MongoDB replica set to validate transactional operations — atomic stock reservations, race conditions on low-inventory items, multi-vendor order placement, guest-to-customer cart merge, and payment lifecycle with duplicate webhook replays.
+
+```bash
+cd backend
+npm test
 ```
 
 ## Security
@@ -112,8 +146,8 @@ rather than 403.
 Implemented: bcrypt password hashing, bcrypt-hashed single-use OTPs with a
 5-minute expiry and attempt limit, rate limiting on auth and OTP routes,
 server-side order pricing, atomic stock reservation with rollback, CORS
-allowlist, and boot-time environment validation that refuses to start without a
-real JWT secret.
+allowlist, constant-time HMAC signature verification (`crypto.timingSafeEqual`),
+and boot-time environment validation that refuses to start without a real JWT secret.
 
 **A full account of what was fixed and why — plus what is still open — is in
 [`backend/SECURITY.md`](backend/SECURITY.md).** Worth reading before touching
